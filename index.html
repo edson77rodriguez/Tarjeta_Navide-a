@@ -1,0 +1,846 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Para Brayan | Felices Fiestas</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/three@0.132.2/build/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.11.4/dist/gsap.min.js"></script>
+    <script src="https://unpkg.com/@rive-app/canvas@latest"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Lato:wght@300;400;700&family=Cinzel:wght@400;700&display=swap');
+
+        :root {
+            --gold: #d4af37;
+            --gold-light: #f9d877;
+            --gold-dark: #b8941f;
+            --dark: #0a0a0f;
+            --dark-accent: #151520;
+            --steel: #3a506b;
+            --glass: rgba(255, 255, 255, 0.08);
+            --glass-border: rgba(255, 255, 255, 0.1);
+        }
+
+        * { 
+            margin: 0; 
+            padding: 0; 
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        html, body {
+            height: 100%;
+            overflow: hidden;
+        }
+
+        body {
+            background-color: var(--dark);
+            background: 
+                radial-gradient(circle at 20% 30%, #1a1a2e 0%, transparent 50%),
+                radial-gradient(circle at 80% 70%, #16213e 0%, transparent 50%),
+                linear-gradient(135deg, #0a0a0f 0%, #151520 100%);
+            font-family: 'Lato', sans-serif;
+            color: #f0f0f0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            perspective: 1000px;
+            touch-action: manipulation;
+            position: relative;
+        }
+
+        /* Canvas Background - Particles */
+        #particles-js {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+            pointer-events: none;
+        }
+
+        /* 3D Scene Container */
+        .scene-container {
+            position: relative;
+            z-index: 10;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        /* 3D Gift Box - Enhanced */
+        .gift-scene {
+            position: relative;
+            width: 200px;
+            height: 200px;
+            transform-style: preserve-3d;
+            cursor: pointer;
+            transition: transform 0.5s ease;
+            animation: float 4s ease-in-out infinite;
+            z-index: 20;
+        }
+
+        .gift-scene:hover {
+            animation-play-state: paused;
+        }
+
+        .gift-box {
+            width: 100%;
+            height: 100%;
+            position: relative;
+            transform-style: preserve-3d;
+            transform: rotateX(-15deg) rotateY(25deg);
+            transition: transform 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        /* Individual faces with patterns */
+        .face {
+            position: absolute;
+            width: 200px;
+            height: 200px;
+            background: linear-gradient(145deg, #1a1a24, #0f0f18);
+            border: 1px solid var(--gold);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+            box-shadow: 
+                inset 0 0 30px rgba(212, 175, 55, 0.1),
+                0 10px 25px rgba(0, 0, 0, 0.5);
+        }
+
+        /* Face-specific patterns */
+        .front::before, .back::before, .right::before, .left::before {
+            content: '';
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background-image: 
+                linear-gradient(90deg, transparent 95%, var(--gold) 100%),
+                linear-gradient(0deg, transparent 95%, var(--gold) 100%);
+            background-size: 20px 20px;
+            opacity: 0.3;
+        }
+
+        /* Ribbon */
+        .ribbon {
+            position: absolute;
+            background: linear-gradient(90deg, var(--gold-dark), var(--gold), var(--gold-light));
+            z-index: 2;
+            box-shadow: 0 0 15px rgba(212, 175, 55, 0.5);
+        }
+
+        .ribbon-vertical {
+            width: 25px;
+            height: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+
+        .ribbon-horizontal {
+            width: 100%;
+            height: 25px;
+            top: 50%;
+            transform: translateY(-50%);
+        }
+
+        /* Ribbon Bow */
+        .ribbon-bow {
+            position: absolute;
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(45deg, var(--gold-dark), var(--gold));
+            border-radius: 50%;
+            z-index: 3;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            box-shadow: 0 0 20px rgba(212, 175, 55, 0.7);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .ribbon-bow::before, .ribbon-bow::after {
+            content: '';
+            position: absolute;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: linear-gradient(45deg, transparent 30%, var(--gold) 70%);
+            opacity: 0.8;
+        }
+
+        .ribbon-bow::before {
+            top: -10px;
+            left: -10px;
+        }
+
+        .ribbon-bow::after {
+            bottom: -10px;
+            right: -10px;
+        }
+
+        /* Face positions */
+        .front  { transform: translateZ(100px); }
+        .back   { transform: rotateY(180deg) translateZ(100px); }
+        .right  { transform: rotateY(90deg) translateZ(100px); }
+        .left   { transform: rotateY(-90deg) translateZ(100px); }
+        .top    { transform: rotateX(90deg) translateZ(100px); }
+        .bottom { transform: rotateX(-90deg) translateZ(100px); }
+
+        /* Interactive Hint */
+        .interaction-hint {
+            position: absolute;
+            bottom: -80px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: var(--gold-light);
+            font-size: 1rem;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            text-align: center;
+            text-shadow: 0 0 15px rgba(212, 175, 55, 0.7);
+            font-family: 'Cinzel', serif;
+            white-space: nowrap;
+            opacity: 0.8;
+        }
+
+        .hint-icon {
+            display: block;
+            font-size: 1.5rem;
+            margin-bottom: 8px;
+            animation: bounce 2s infinite;
+        }
+
+        /* The Card - Enhanced */
+        .card-container {
+            position: absolute;
+            z-index: 30;
+            width: 90%;
+            max-width: 500px;
+            background: rgba(15, 15, 25, 0.85);
+            backdrop-filter: blur(20px) saturate(180%);
+            -webkit-backdrop-filter: blur(20px) saturate(180%);
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
+            padding: 50px 40px;
+            text-align: center;
+            transform: scale(0) rotateY(90deg);
+            opacity: 0;
+            transition: all 1s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            box-shadow: 
+                0 25px 60px rgba(0, 0, 0, 0.7),
+                0 0 50px rgba(212, 175, 55, 0.15),
+                inset 0 1px 0 rgba(255, 255, 255, 0.1);
+            overflow: hidden;
+        }
+
+        .card-container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, var(--gold), transparent);
+        }
+
+        .card-container.active {
+            transform: scale(1) rotateY(0);
+            opacity: 1;
+        }
+
+        /* Card Content */
+        .card-header {
+            margin-bottom: 30px;
+        }
+
+        .card-icon {
+            color: var(--gold);
+            font-size: 3rem;
+            margin-bottom: 20px;
+            filter: drop-shadow(0 0 10px rgba(212, 175, 55, 0.5));
+            display: inline-block;
+            animation: glow 3s ease-in-out infinite;
+        }
+
+        h1 {
+            font-family: 'Cinzel', serif;
+            color: var(--gold);
+            font-size: 2.8rem;
+            margin-bottom: 15px;
+            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+            letter-spacing: 2px;
+        }
+
+        h2 {
+            font-family: 'Playfair Display', serif;
+            color: #ffffff;
+            font-size: 1.8rem;
+            margin-bottom: 25px;
+            font-weight: 400;
+        }
+
+        .divider {
+            height: 1px;
+            background: linear-gradient(90deg, transparent, var(--gold), transparent);
+            margin: 30px auto;
+            width: 80%;
+            opacity: 0.5;
+        }
+
+        .message {
+            font-size: 1.2rem;
+            line-height: 1.8;
+            color: #e0e0e0;
+            margin-bottom: 30px;
+            text-align: left;
+            padding: 0 10px;
+        }
+
+        .highlight {
+            color: var(--gold-light);
+            font-weight: 700;
+            font-style: italic;
+            text-shadow: 0 0 10px rgba(212, 175, 55, 0.3);
+        }
+
+        .signature {
+            font-family: 'Cinzel', serif;
+            color: #aaaaaa;
+            font-size: 1rem;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            margin-top: 20px;
+        }
+
+        /* Animated Background Elements */
+        .bg-element {
+            position: absolute;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(212, 175, 55, 0.1), transparent 70%);
+            z-index: 1;
+            pointer-events: none;
+        }
+
+        /* Audio Control */
+        .audio-control {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            z-index: 100;
+            background: rgba(15, 15, 25, 0.7);
+            border: 1px solid var(--gold);
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: var(--gold);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(5px);
+        }
+
+        .audio-control:hover {
+            background: rgba(212, 175, 55, 0.2);
+            transform: scale(1.1);
+        }
+
+        /* Animations */
+        @keyframes float {
+            0%, 100% { transform: translateY(0) rotateX(-15deg) rotateY(0); }
+            50% { transform: translateY(-30px) rotateX(-15deg) rotateY(10deg); }
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        @keyframes glow {
+            0%, 100% { opacity: 0.8; }
+            50% { opacity: 1; }
+        }
+
+        @keyframes rotateSlow {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .gift-scene {
+                width: 150px;
+                height: 150px;
+            }
+            
+            .face {
+                width: 150px;
+                height: 150px;
+            }
+            
+            .front  { transform: translateZ(75px); }
+            .back   { transform: rotateY(180deg) translateZ(75px); }
+            .right  { transform: rotateY(90deg) translateZ(75px); }
+            .left   { transform: rotateY(-90deg) translateZ(75px); }
+            .top    { transform: rotateX(90deg) translateZ(75px); }
+            .bottom { transform: rotateX(-90deg) translateZ(75px); }
+            
+            .card-container {
+                padding: 30px 20px;
+            }
+            
+            h1 {
+                font-size: 2.2rem;
+            }
+            
+            .message {
+                font-size: 1.1rem;
+            }
+        }
+
+        /* Micro-interactions */
+        .click-effect {
+            position: absolute;
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(212, 175, 55, 0.3), transparent 70%);
+            pointer-events: none;
+            z-index: 5;
+            opacity: 0;
+        }
+    </style>
+</head>
+<body>
+    <!-- Background Particles -->
+    <div id="particles-js"></div>
+    
+    <!-- Animated Background Elements -->
+    <div class="bg-element" style="width: 300px; height: 300px; top: 10%; left: 5%; animation: rotateSlow 120s infinite linear;"></div>
+    <div class="bg-element" style="width: 200px; height: 200px; bottom: 15%; right: 10%; animation: rotateSlow 80s infinite linear reverse;"></div>
+    
+    <!-- Audio Control -->
+    <div class="audio-control" id="audioControl" onclick="toggleAudio()">
+        <i class="fas fa-volume-up" id="audioIcon"></i>
+    </div>
+    
+    <!-- Main Scene Container -->
+    <div class="scene-container">
+        <!-- 3D Gift Box -->
+        <div class="gift-scene" id="giftBox" onclick="openGift(event)">
+            <div class="gift-box" id="gift3D">
+                <div class="face front"></div>
+                <div class="face back"></div>
+                <div class="face right"></div>
+                <div class="face left"></div>
+                <div class="face top"></div>
+                <div class="face bottom"></div>
+                
+                <!-- Ribbons -->
+                <div class="ribbon ribbon-vertical"></div>
+                <div class="ribbon ribbon-horizontal"></div>
+                <div class="ribbon-bow">
+                    <i class="fas fa-gift" style="color: #000; font-size: 1.2rem;"></i>
+                </div>
+            </div>
+            
+            <div class="interaction-hint">
+                <span class="hint-icon"><i class="fas fa-hand-pointer"></i></span>
+                CLICK PARA ABRIR
+            </div>
+        </div>
+        
+        <!-- Christmas Card -->
+        <div class="card-container" id="messageCard">
+            <div class="card-header">
+                <div class="card-icon">
+                    <i class="fas fa-star"></i>
+                </div>
+                <h1>FELIZ NAVIDAD</h1>
+                <h2>Y PRÓSPERO AÑO NUEVO</h2>
+            </div>
+            
+            <div class="divider"></div>
+            
+            <div class="message">
+                <p>Hola <span class="highlight">Brayan</span>,</p>
+                <br>
+                <p>En esta época especial del año, quería enviarte un saludo sincero para desearte unas felices fiestas.</p>
+                <br>
+                <p>Aunque no compartamos las mismas clases, el hecho de estar en la misma carrera crea una conexión especial. Me da gusto saber que hay personas como tú en nuestro camino académico, con quienes podemos compartir el esfuerzo y los logros.</p>
+                <br>
+                <p>Que estas Navidades te traigan mucha alegría, momentos especiales con tus seres queridos, y que el descanso sea reparador para el próximo semestre.</p>
+                <br>
+                <p>Espero que el próximo año venga cargado de éxitos en tus estudios, proyectos que te apasionen, y que sigamos encontrándonos en el campus con esa buena energía que siempre traes.</p>
+            </div>
+            
+            <div class="divider"></div>
+            
+            <p class="signature">¡Un fuerte abrazo navideño!<br>Tu amigo Edson</p>
+            
+            <!-- Secret Button -->
+            <div style="margin-top: 30px; opacity: 0.6; font-size: 0.9rem;">
+                <a href="javascript:void(0)" onclick="showEasterEgg()" style="color: var(--gold); text-decoration: none;">
+                    <i class="fas fa-graduation-cap"></i> Mensaje especial
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Audio Elements -->
+    <audio id="backgroundMusic" loop preload="auto">
+        <source src="https://assets.mixkit.co/music/preview/mixkit-christmas-fireplace-232.mp3" type="audio/mpeg">
+    </audio>
+    
+    <audio id="openSound" preload="auto">
+        <source src="https://assets.mixkit.co/sfx/preview/mixkit-unlock-game-notification-253.mp3" type="audio/mpeg">
+    </audio>
+
+    <!-- JavaScript Libraries -->
+    <script src="https://cdn.jsdelivr.net/particles.js/2.0.0/particles.min.js"></script>
+    
+    <script>
+        // Initialize particles.js background
+        particlesJS("particles-js", {
+            particles: {
+                number: { value: 80, density: { enable: true, value_area: 800 } },
+                color: { value: "#d4af37" },
+                shape: { type: "circle" },
+                opacity: { value: 0.5, random: true },
+                size: { value: 3, random: true },
+                line_linked: {
+                    enable: true,
+                    distance: 150,
+                    color: "#d4af37",
+                    opacity: 0.2,
+                    width: 1
+                },
+                move: {
+                    enable: true,
+                    speed: 2,
+                    direction: "none",
+                    random: true,
+                    straight: false,
+                    out_mode: "out",
+                    bounce: false
+                }
+            },
+            interactivity: {
+                detect_on: "canvas",
+                events: {
+                    onhover: { enable: true, mode: "repulse" },
+                    onclick: { enable: true, mode: "push" }
+                }
+            }
+        });
+
+        // Audio management
+        const bgMusic = document.getElementById('backgroundMusic');
+        const openSound = document.getElementById('openSound');
+        const audioControl = document.getElementById('audioControl');
+        const audioIcon = document.getElementById('audioIcon');
+        
+        let audioEnabled = true;
+        
+        // Try to autoplay background music with user interaction
+        function initAudio() {
+            bgMusic.volume = 0.4;
+            openSound.volume = 0.7;
+            
+            // Start muted, will be unmuted on first user interaction
+            bgMusic.muted = true;
+            openSound.muted = true;
+            
+            // Try to play (will fail without user interaction)
+            bgMusic.play().catch(e => console.log("Audio autoplay blocked:", e));
+        }
+        
+        function toggleAudio() {
+            audioEnabled = !audioEnabled;
+            
+            if (audioEnabled) {
+                bgMusic.muted = false;
+                openSound.muted = false;
+                audioIcon.className = "fas fa-volume-up";
+                audioControl.style.background = "rgba(15, 15, 25, 0.7)";
+                audioControl.style.borderColor = "var(--gold)";
+                
+                // Try to play if paused
+                if (bgMusic.paused) {
+                    bgMusic.play().catch(e => console.log("Audio play failed:", e));
+                }
+            } else {
+                bgMusic.muted = true;
+                openSound.muted = true;
+                audioIcon.className = "fas fa-volume-mute";
+                audioControl.style.background = "rgba(255, 255, 255, 0.1)";
+                audioControl.style.borderColor = "#666";
+            }
+        }
+        
+        // Unmute audio on first user interaction
+        function enableAudio() {
+            if (bgMusic.muted) {
+                bgMusic.muted = false;
+                openSound.muted = false;
+                audioEnabled = true;
+                audioIcon.className = "fas fa-volume-up";
+            }
+        }
+        
+        // Gift opening function
+        function openGift(event) {
+            // Enable audio on first interaction
+            enableAudio();
+            
+            const box = document.getElementById('giftBox');
+            const gift3D = document.getElementById('gift3D');
+            const card = document.getElementById('messageCard');
+            
+            // Play open sound
+            if (audioEnabled) {
+                openSound.currentTime = 0;
+                openSound.play().catch(e => console.log("Open sound failed:", e));
+            }
+            
+            // Create click effect
+            createClickEffect(event);
+            
+            // Animate the gift opening
+            gsap.to(gift3D, {
+                duration: 0.8,
+                rotationY: '+=180',
+                rotationX: '+=45',
+                scale: 1.5,
+                ease: "power3.out"
+            });
+            
+            gsap.to(box, {
+                duration: 0.8,
+                scale: 1.5,
+                opacity: 0,
+                ease: "power3.in",
+                onComplete: function() {
+                    box.style.display = 'none';
+                    
+                    // Show card with animation
+                    card.classList.add('active');
+                    
+                    // Trigger confetti
+                    triggerFireworks();
+                    
+                    // Start background music if not already playing
+                    if (audioEnabled && bgMusic.paused) {
+                        bgMusic.play().catch(e => console.log("Background music failed:", e));
+                    }
+                }
+            });
+        }
+        
+        // Create click effect
+        function createClickEffect(event) {
+            const effect = document.createElement('div');
+            effect.className = 'click-effect';
+            
+            // Position at click
+            effect.style.left = (event.clientX - 50) + 'px';
+            effect.style.top = (event.clientY - 50) + 'px';
+            
+            document.body.appendChild(effect);
+            
+            // Animate the effect
+            gsap.to(effect, {
+                duration: 0.8,
+                width: '300px',
+                height: '300px',
+                opacity: 0,
+                ease: "power2.out",
+                onComplete: function() {
+                    document.body.removeChild(effect);
+                }
+            });
+        }
+        
+        // Enhanced fireworks
+        function triggerFireworks() {
+            const duration = 5000;
+            const end = Date.now() + duration;
+            
+            // First burst
+            confetti({
+                particleCount: 150,
+                angle: 60,
+                spread: 55,
+                origin: { x: 0 },
+                colors: ['#d4af37', '#ffffff', '#f9d877']
+            });
+            
+            confetti({
+                particleCount: 150,
+                angle: 120,
+                spread: 55,
+                origin: { x: 1 },
+                colors: ['#d4af37', '#ffffff', '#f9d877']
+            });
+            
+            // Continuous fireworks
+            const interval = setInterval(function() {
+                if (Date.now() > end) {
+                    return clearInterval(interval);
+                }
+                
+                // Random bursts
+                confetti({
+                    particleCount: 50,
+                    angle: 90,
+                    spread: 70,
+                    origin: { 
+                        x: Math.random() * 0.8 + 0.1, 
+                        y: Math.random() * 0.3 
+                    },
+                    colors: ['#d4af37', '#ffffff', '#f9d877'],
+                    scalar: 1.2
+                });
+            }, 300);
+            
+            // Special effects after delay
+            setTimeout(function() {
+                // Gold shower
+                confetti({
+                    particleCount: 300,
+                    spread: 100,
+                    origin: { y: 0.6 },
+                    colors: ['#d4af37', '#f9d877'],
+                    decay: 0.9
+                });
+            }, 1500);
+        }
+        
+        // Easter egg function - Ahora con temática universitaria
+        function showEasterEgg() {
+            // Play a special sound if audio is enabled
+            if (audioEnabled) {
+                const easterEggSound = new Audio('https://assets.mixkit.co/sfx/preview/mixkit-winning-chimes-2015.mp3');
+                easterEggSound.volume = 0.5;
+                easterEggSound.play().catch(e => console.log("Easter egg sound failed:", e));
+            }
+            
+            // Confetti especial con colores universitarios
+            confetti({
+                particleCount: 250,
+                spread: 100,
+                origin: { y: 0.5 },
+                colors: ['#d4af37', '#0a0a0f', '#3a506b', '#ffffff'],
+                shapes: ['circle', 'square'],
+                scalar: 1.2
+            });
+            
+            // Mensaje especial ajustado
+            const messages = [
+                "🎓 ¡Éxito en los exámenes finales!",
+                "📚 Que el próximo semestre venga con calificaciones excelentes",
+                "🏫 Mucho ánimo para terminar la carrera fuerte",
+                "✨ Que el 2024 sea tu año académico",
+                "🌟 Nos vemos en el campus con buen ánimo"
+            ];
+            
+            const randomMessage = messages[Math.floor(Math.random() * messages.length)];
+            
+            // Mostrar mensaje de manera elegante
+            const messageDiv = document.createElement('div');
+            messageDiv.innerHTML = `
+                <div style="
+                    position: fixed;
+                    top: 50%;
+                    left: 50%;
+                    transform: translate(-50%, -50%);
+                    background: rgba(10, 10, 15, 0.95);
+                    border: 2px solid var(--gold);
+                    border-radius: 15px;
+                    padding: 30px;
+                    z-index: 1000;
+                    max-width: 80%;
+                    text-align: center;
+                    box-shadow: 0 0 40px rgba(212, 175, 55, 0.3);
+                    backdrop-filter: blur(10px);
+                ">
+                    <h3 style="color: var(--gold); font-family: 'Cinzel', serif; margin-bottom: 20px;">
+                        <i class="fas fa-graduation-cap"></i> Mensaje Especial
+                    </h3>
+                    <p style="font-size: 1.2rem; line-height: 1.6; margin-bottom: 25px;">
+                        ${randomMessage}
+                    </p>
+                    <p style="color: #aaa; font-size: 0.9rem; margin-bottom: 20px;">
+                        ¡Sigue adelante con esa dedicación que te caracteriza!
+                    </p>
+                    <button onclick="this.parentElement.remove()" style="
+                        background: transparent;
+                        border: 1px solid var(--gold);
+                        color: var(--gold);
+                        padding: 10px 25px;
+                        border-radius: 25px;
+                        cursor: pointer;
+                        font-family: 'Cinzel', serif;
+                        transition: all 0.3s;
+                    " onmouseover="this.style.background='rgba(212, 175, 55, 0.2)'" 
+                    onmouseout="this.style.background='transparent'">
+                        Cerrar
+                    </button>
+                </div>
+            `;
+            
+            document.body.appendChild(messageDiv);
+        }
+        
+        // Add interactive rotation on mouse move
+        document.addEventListener('mousemove', function(e) {
+            const box = document.getElementById('gift3D');
+            if (!box) return;
+            
+            const xAxis = (window.innerWidth / 2 - e.pageX) / 25;
+            const yAxis = (e.pageY - window.innerHeight / 2) / 25;
+            
+            box.style.transform = `rotateX(${-yAxis}deg) rotateY(${xAxis}deg)`;
+        });
+        
+        // Initialize when page loads
+        window.addEventListener('load', function() {
+            initAudio();
+            
+            // Auto-rotate the gift box when idle
+            const giftBox = document.getElementById('giftBox');
+            if (giftBox) {
+                let rotateY = 0;
+                setInterval(function() {
+                    if (!giftBox.style.transform || !giftBox.style.transform.includes('rotateY')) {
+                        rotateY += 0.5;
+                        document.getElementById('gift3D').style.transform = `rotateX(-15deg) rotateY(${rotateY}deg)`;
+                    }
+                }, 100);
+            }
+        });
+        
+        // Make the gift box responsive to device orientation
+        if (window.DeviceOrientationEvent) {
+            window.addEventListener('deviceorientation', function(e) {
+                const box = document.getElementById('gift3D');
+                if (!box) return;
+                
+                // Use gamma (left-to-right tilt) and beta (front-to-back tilt)
+                const tiltY = e.gamma ? e.gamma / 10 : 0;
+                const tiltX = e.beta ? (e.beta - 90) / 10 : 0;
+                
+                box.style.transform = `rotateX(${tiltX}deg) rotateY(${tiltY}deg)`;
+            });
+        }
+    </script>
+</body>
+</html>
